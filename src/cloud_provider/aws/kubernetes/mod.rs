@@ -14,6 +14,7 @@ use tera::Context as TeraContext;
 use crate::cloud_provider::aws::common::{do_stateless_service_cleanup, kubernetes_config_path};
 use crate::cloud_provider::aws::kubernetes::node::Node;
 use crate::cloud_provider::aws::{common, AWS};
+use crate::cloud_provider::common::workerNodeDataTemplate::WorkerNodeDataTemplate;
 use crate::cloud_provider::environment::Environment;
 use crate::cloud_provider::kubernetes::{
     check_kubernetes_has_enough_resources_to_deploy_environment, Kind, Kubernetes, KubernetesNode,
@@ -732,7 +733,7 @@ impl<'a> Kubernetes for EKS<'a> {
         let terraform_result = from_simple_error_to_engine_error(
             self.engine_error_scope(),
             self.context.execution_id(),
-            cmd::terraform::terraform_exec_with_init_validate_destroy(temp_dir.as_str()),
+            cmd::terraform::terraform_exec_with_init_plan_apply_destroy(temp_dir.as_str()),
         );
 
         // we should delete the bucket containing the kubeconfig after
@@ -1349,12 +1350,4 @@ impl<'a> Kubernetes for EKS<'a> {
 
 fn get_s3_kubeconfig_bucket_name(id: String) -> String {
     format!("qovery-kubeconfigs-{}", id)
-}
-
-#[derive(Serialize, Deserialize)]
-struct WorkerNodeDataTemplate {
-    instance_type: String,
-    desired_size: String,
-    max_size: String,
-    min_size: String,
 }

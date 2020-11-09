@@ -60,33 +60,6 @@ pub fn terraform_aws_secret_access_key() -> String {
         .expect("env var TERRAFORM_AWS_SECRET_ACCESS_KEY is mandatory")
 }
 
-pub fn execution_id() -> String {
-    Utc::now()
-        .to_rfc3339()
-        .replace(":", "-")
-        .replace(".", "-")
-        .replace("+", "-")
-}
-
-pub fn context() -> Context {
-    let execution_id = execution_id();
-    let home_dir = std::env::var("WORKSPACE_ROOT_DIR")
-        .unwrap_or(home_dir().unwrap().to_str().unwrap().to_string());
-    let lib_root_dir = std::env::var("LIB_ROOT_DIR").expect("LIB_ROOT_DIR is mandatory");
-    let metadata = Metadata {
-        test: Option::from(true),
-        dry_run_deploy: Option::from(false),
-    };
-
-    Context::new(
-        execution_id.as_str(),
-        home_dir.as_str(),
-        lib_root_dir.as_str(),
-        None,
-        Option::from(metadata),
-    )
-}
-
 pub fn container_registry_ecr(context: &Context) -> ECR {
     ECR::new(
         context.clone(),
@@ -740,12 +713,10 @@ pub fn echo_app_environment(context: &Context) -> Environment {
                 expired_at: Utc::now(),
             },
             storage: vec![],
-            environment_variables: vec![
-                EnvironmentVariable {
-                    key: "ECHO_TEXT".to_string(),
-                    value: "42".to_string(),
-                },
-            ],
+            environment_variables: vec![EnvironmentVariable {
+                key: "ECHO_TEXT".to_string(),
+                value: "42".to_string(),
+            }],
             branch: "echo-app".to_string(),
             private_port: Some(5678),
             total_cpus: "100m".to_string(),

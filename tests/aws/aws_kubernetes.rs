@@ -22,6 +22,7 @@ use std::path::Path;
 use std::process::Command;
 use std::{env, fs};
 use test_utilities::aws::AWS_KUBERNETES_VERSION;
+use test_utilities::utilities::context;
 
 pub const QOVERY_ENGINE_REPOSITORY_URL: &str = "CHANGE-ME";
 pub const TMP_DESTINATION_GIT: &str = "/tmp/qovery-engine-main/";
@@ -140,9 +141,14 @@ fn upgrade_new_cluster() {
 #[test]
 #[ignore]
 fn create_eks_cluster_in_us_east_2() {
+    // PERMIT_CLUSTER_CREATION env variable prevent you to not spend money on unnecessary cluster creation
+    match env::var("PERMIT_CLUSTER_CREATION") {
+        Ok(s) => {}
+        _ => return,
+    }
     init();
 
-    let context = test_utilities::aws::context();
+    let context = context();
 
     let engine = test_utilities::aws::docker_ecr_aws_engine(&context);
     let session = engine.session().unwrap();
@@ -153,7 +159,7 @@ fn create_eks_cluster_in_us_east_2() {
 
     let cloudflare = dns_provider_cloudflare(&context);
 
-    let mut file = File::open("tests/assets/eks-options.json").unwrap();
+    let mut file = File::open(env::var("EKS_OPTIONS").unwrap()).unwrap();
     let mut read_buf = String::new();
     file.read_to_string(&mut read_buf).unwrap();
 
@@ -200,9 +206,14 @@ pub fn read_file(filepath: &str) -> String {
 #[test]
 #[ignore]
 fn create_eks_cluster_in_eu_west_3() {
+    // PERMIT_CLUSTER_CREATION env variable prevent you to not spend money on unnecessary cluster creation
+    match env::var("PERMIT_CLUSTER_CREATION") {
+        Ok(s) => {}
+        _ => return,
+    }
     init();
 
-    let context = test_utilities::aws::context();
+    let context = context();
 
     let engine = test_utilities::aws::docker_ecr_aws_engine(&context);
     let session = engine.session().unwrap();
@@ -248,7 +259,7 @@ fn create_eks_cluster_in_eu_west_3() {
 fn delete_eks_cluster_in_us_east_2() {
     init();
 
-    let context = test_utilities::aws::context();
+    let context = context();
 
     let engine = test_utilities::aws::docker_ecr_aws_engine(&context);
     let session = engine.session().unwrap();
@@ -295,7 +306,7 @@ fn delete_eks_cluster_in_eu_west_3() {
     init();
     // put some environments here, simulated or not
 
-    let context = test_utilities::aws::context();
+    let context = context();
 
     let engine = test_utilities::aws::docker_ecr_aws_engine(&context);
     let session = engine.session().unwrap();
